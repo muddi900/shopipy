@@ -17,7 +17,7 @@ class Shopify:
 
     async def get_orders_async(self, limit=50):
         async with httpx.AsyncClient(headers=self.__headers) as client:
-            orders = await client.get(f"{self.__url}/orders?limit={limit}")
+            orders = await client.get(f"{self.__url}/orders.json?limit={limit}")
 
         return orders.json()
 
