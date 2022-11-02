@@ -23,3 +23,12 @@ class Shopify:
 
     def get_orders(self, limit=50):
         return asyncio.run(self.get_orders_async(limit))
+
+    async def get_products(self, limit=50):
+        async with httpx.AsyncClient(headers=self.__headers) as client:
+            products = await client.get(f"{self.__url}/products.json?limit={limit}")
+
+        return products.json()
+
+    def get_products(self, limit=50):
+        return asyncio.run(self.get_products(limit))
