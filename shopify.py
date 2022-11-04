@@ -12,12 +12,32 @@ class Shopify:
 
         if admin_key is None:
             raise TypeError("Admin key can't be none")
-        self.__url = f"https://{store_slug}.myshopify.com/admin/api/2022-07/"
+        self.__url = f"https://{store_slug}.myshopify.com/admin/api/2022-07"
         self.__headers = {"X-Shopify-Access-Token": admin_key}
 
-    async def get_orders_async(self, limit=50):
+    async def __get_item(
+        self,
+        *,
+        url_json_path: str,
+        async_client: httpx.AsyncClient,
+        limit: int | None,
+    ):
+        if limit > 250:
+            raise AttributeError("The max limit is 250")
+
+        url = f"{self.__url}/{url_json_path}"
+
+        if limit is not None or limit > 0:
+            url = f"{url}?limit={limit}"
+        return await async_client.get(url)
+
+    async def get_orders_async(self, limit=50, *, order_id: str | int = None):
         async with httpx.AsyncClient(headers=self.__headers) as client:
-            orders = await client.get(f"{self.__url}/orders.json?limit={limit}")
+            orders = await self.__get_item(
+                url_json_path="orders.json",
+                async_client=client,
+                limit=limit,
+            )
 
         return orders.json()
 
@@ -26,7 +46,11 @@ class Shopify:
 
     async def get_products(self, limit=50):
         async with httpx.AsyncClient(headers=self.__headers) as client:
-            products = await client.get(f"{self.__url}/products.json?limit={limit}")
+            products = await self.__get_item(
+                url_json_path="products.json",
+                async_client=client,
+                limit=limit,
+            )
 
         return products.json()
 
