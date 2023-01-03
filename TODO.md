@@ -6,4 +6,6 @@
 - [ ] Models for products
 - [ ] Models for users
 - [ ] Get users
-- [ ] Doc strings
+- [ ] Docstrings
+- [ ] Documentation
+  - [ ] Quickstart
