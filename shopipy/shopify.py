@@ -44,7 +44,7 @@ class Shopify:
 
         url = f"{self.__url}/{url_json_path}"
 
-        return client.post(url,json=data)
+        return client.post(url, json=data)
 
     async def get_orders_async(self, limit=50, *, order_id: str | int = None):
         async with httpx.AsyncClient(headers=self.__headers) as client:
@@ -72,4 +72,15 @@ class Shopify:
     def get_products(self, limit=50):
         return asyncio.run(self.get_products(limit))
 
-    async def create_
+    async def create_product(self, data: dict[Any, Any]) -> dict:
+        async with httpx.AsyncClient() as client:
+            resp = await self.__create_items(
+                data=data,
+                client=client,
+                url_json_path="products.json",
+            )
+
+        return resp.json()
+
+    def create_product_sync(self, data: dict[Any, Any]) -> dict:
+        return asyncio.run(self.create_product(data))
