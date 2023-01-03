@@ -2,6 +2,8 @@ import os
 import asyncio
 import httpx
 
+from typing import Any
+
 
 class Shopify:
     def __init__(
@@ -21,7 +23,7 @@ class Shopify:
         url_json_path: str,
         async_client: httpx.AsyncClient,
         limit: int | None,
-    ):
+    ) -> httpx.Response:
         if limit > 250:
             raise AttributeError("The max limit is 250")
 
@@ -30,6 +32,19 @@ class Shopify:
         if limit is not None or limit > 0:
             url = f"{url}?limit={limit}"
         return await async_client.get(url)
+
+    async def __create_items(
+        self,
+        *,
+        url_json_path: str,
+        client: httpx.AsyncClient,
+        limit: int | None,
+        data: dict[Any, Any],
+    ) -> httpx.Response:
+
+        url = f"{self.__url}/{url_json_path}"
+
+        return client.post(url,json=data)
 
     async def get_orders_async(self, limit=50, *, order_id: str | int = None):
         async with httpx.AsyncClient(headers=self.__headers) as client:
@@ -44,7 +59,7 @@ class Shopify:
     def get_orders(self, limit=50):
         return asyncio.run(self.get_orders_async(limit))
 
-    async def get_products(self, limit=50):
+    async def get_products_async(self, limit=50):
         async with httpx.AsyncClient(headers=self.__headers) as client:
             products = await self.__get_item(
                 url_json_path="products.json",
@@ -56,3 +71,5 @@ class Shopify:
 
     def get_products(self, limit=50):
         return asyncio.run(self.get_products(limit))
+
+    async def create_
