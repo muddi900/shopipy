@@ -84,3 +84,12 @@ class Shopify:
 
     def create_product_sync(self, data: dict[Any, Any]) -> dict:
         return asyncio.run(self.create_product(data))
+
+    async def get_users(self):
+        async with httpx.AsyncClient() as client:
+            return await self.__get_item(
+                async_client=client, url_json_path="users.json"
+            )
+
+    def get_users_sync(self):
+        return asyncio.run(self.get_users())
