@@ -5,7 +5,7 @@
 - [ ] Models for orders
 - [ ] Models for products
 - [ ] Models for users
-- [ ] Get users
+- [x] Get users
 - [ ] Docstrings
 - [ ] Documentation
   - [ ] Generate docs from docstrings
