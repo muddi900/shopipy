@@ -8,4 +8,5 @@
 - [ ] Get users
 - [ ] Docstrings
 - [ ] Documentation
+  - [ ] Generate docs from docstrings
   - [ ] Quickstart
