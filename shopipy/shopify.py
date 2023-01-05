@@ -29,6 +29,25 @@ class Shopify:
     async def __get_client(self, **kwargs) -> httpx.AsyncClient:
         return await httpx.AsyncClient(headers=self.__headers, **kwargs)
 
+    async def __bulk_request(
+        self, action: BulkAction, *, endpoint: str | None, payloads: list[dict]
+    ):
+        match action:
+            case BulkAction.GET:
+                runner = self.__get_item
+            case BulkAction.CREATE:
+                runner = self.__create_items
+            case _:
+                return
+
+        tasks = []
+
+        for payload in payloads:
+            if endpoint is not None and "url_json_path" not in payload:
+                payload["url_json_path"] = endpoint
+
+            tasks.append(asyncio.current_task(runner(**payload)))
+
     async def __get_item(
         self,
         *,
