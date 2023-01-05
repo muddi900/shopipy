@@ -42,29 +42,36 @@ class Shopify:
 
         tasks = []
 
+        client = self.__get_client()
+
         for payload in payloads:
             if endpoint is not None and "url_json_path" not in payload:
                 payload["url_json_path"] = endpoint
 
-            tasks.append(asyncio.current_task(runner(**payload)))
+            tasks.append(asyncio.current_task(runner(client=client, **payload)))
+
+        client.close()
+        return await asyncio.gather(*tasks)
 
     async def __get_item(
         self,
         *,
+        client: httpx.AsyncClient = None,
         url_json_path: str,
         limit: int | None,
     ) -> httpx.Response:
         if limit > 250:
             raise AttributeError("The max limit is 250")
 
-        async_client = await self.__get_client()
+        if client is None:
+            client = await self.__get_client()
 
         url = f"{self.__url}/{url_json_path}"
 
         if limit is not None or limit > 0:
             url = f"{url}?limit={limit}"
-        resp = await async_client.get(url)
-        async_client.close()
+        resp = await client.get(url)
+        client.close()
         return resp
 
     async def __create_items(
@@ -130,3 +137,8 @@ class Shopify:
 
     def get_users_sync(self):
         return asyncio.run(self.get_users())
+
+    async def get_webhooks(self):
+        resp = await self.__get_item(url_json_path="webhooks.json", limit=50)
+
+        return resp.json()
