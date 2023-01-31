@@ -5,7 +5,7 @@ import httpx
 from enum import Enum
 from typing import Any
 
-from models import Order
+from models import Order, Product, Customer, Fullfilment
 
 
 class BulkAction(Enum):
@@ -115,23 +115,41 @@ class Shopify:
         return orders.json()["orders"]
 
     def get_orders_sync(
-        self, limit: int = 50, return_mode: ReturnMode = ReturnMode.DICT
+        self,
+        limit: int = 50,
+        return_mode: ReturnMode = ReturnMode.DICT,
     ) -> list[dict | Order]:
         return asyncio.run(self.get_orders_async(limit, return_mode=return_mode))
 
-    async def get_products(self, limit=50, product_id: str | int = None):
-        if product_id is None:
-            json_path = "products.json"
-        else:
-            json_path = f"products/{product_id}.json"
-            limit = None
+    async def get_products(
+        self,
+        limit=50,
+        *,
+        return_mode=ReturnMode.DICT,
+    ) -> list(dict | Product):
+
+        json_path = "products.json"
+        limit = None
 
         products = await self.__get_item(url_json_path=json_path, limit=limit)
 
-        return products.json()
+        if return_mode == 1:
+            return [Product(p) for p in products.json()["products"]]
 
-    def get_products_sync(self, limit=50):
-        return asyncio.run(self.get_products(limit))
+        return products.json()["products"]
+
+    def get_products_sync(
+        self,
+        limit=50,
+        *,
+        return_mode=ReturnMode.DICT,
+    ) -> list(dict | Product):
+        return asyncio.run(
+            self.get_products(
+                limit,
+                return_mode=return_mode,
+            ),
+        )
 
     async def create_product(self, data: dict[Any, Any]) -> dict:
 
@@ -145,13 +163,23 @@ class Shopify:
     def create_product_sync(self, data: dict[Any, Any]) -> dict:
         return asyncio.run(self.create_product(data))
 
-    async def get_users(self):
-        resp = await self.__get_item(url_json_path="users.json")
+    async def get_customers(
+        self, limit=50, *, return_mode=ReturnMode.DICT
+    ) -> list[dict | Customer]:
+        resp = await self.__get_item(url_json_path="customers.json", limit=limit)
 
-        return resp.a
+        if return_mode == 1:
+            return [Customer(c) for c in resp.json()["customers"]]
 
-    def get_users_sync(self):
-        return asyncio.run(self.get_users())
+        return resp.json()["customers"]
+
+    def get_customers_sync(
+        self,
+        limit=50,
+        *,
+        return_mode: ReturnMode = ReturnMode.DICT,
+    ) -> list[dict | Customer]:
+        return asyncio.run(self.get_customers())
 
     async def get_webhooks(self):
         resp = await self.__get_item(url_json_path="webhooks.json", limit=50)
