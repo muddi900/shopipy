@@ -5,12 +5,19 @@ import httpx
 from enum import Enum
 from typing import Any
 
+from models import Order
+
 
 class BulkAction(Enum):
     GET = 1
     CREATE = 2
     EDIT = 3
     DELETE = 4
+
+
+class ReturnMode(Enum):
+    DICT = 0
+    MODEL = 2
 
 
 class Shopify:
@@ -90,19 +97,27 @@ class Shopify:
         client.close()
         return resp
 
-    async def get_orders(self, limit=50, *, order_id: str | int = None):
-        if order_id is not None:
-            json_path = f"orders/{order_id}.json"
-        else:
-            json_path = "orders.json"
-            limit = None
+    async def get_orders(
+        self,
+        limit=50,
+        *,
+        return_mode: ReturnMode = ReturnMode.DICT,
+    ) -> list[dict | Order]:
+
+        json_path = "orders.json"
+        limit = None
 
         orders = await self.__get_item(url_json_path=json_path, limit=limit)
 
-        return orders.json()
+        if return_mode == 1:
+            return [Order(o) for o in orders.json()["Orders"]]
 
-    def get_orders_sync(self, limit=50):
-        return asyncio.run(self.get_orders_async(limit))
+        return orders.json()["orders"]
+
+    def get_orders_sync(
+        self, limit: int = 50, return_mode: ReturnMode = ReturnMode.DICT
+    ) -> list[dict | Order]:
+        return asyncio.run(self.get_orders_async(limit, return_mode=return_mode))
 
     async def get_products(self, limit=50, product_id: str | int = None):
         if product_id is None:
