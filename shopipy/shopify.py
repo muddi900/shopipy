@@ -5,7 +5,7 @@ import httpx
 from enum import Enum
 from typing import Any
 
-from models import Order, Product, Customer, Fullfilment
+from models import Order, Product, Customer, Fulfillment
 
 
 class BulkAction(Enum):
@@ -274,6 +274,68 @@ class Shopify:
         # fmt:off
         json_path = "webhooks.json" if webhook_id is None else f"webhooks/{webhook_id}.json"
         # fmt:on
-        resp = await self.__get_item(url_json_path=json_path, limit=50)
+        resp = await self.__get_item(url_json_path=json_path, limit=50, **params)
 
         return resp.json()
+
+    async def get_fulfillments(
+        self,
+        limit=50,
+        *,
+        fullfilment_id: str | int | None = None,
+        return_mode: ReturnMode = ReturnMode.DICT,
+        params: dict = {},
+        **kwargs,
+    ) -> list[dict | Fulfillment] | Fulfillment | dict:
+
+        """
+        A method to get fulfillments or an individual fulfillment.
+        Invidual fulfillments require an order_id to be passed as a kwarg.
+        Unlike other get methods, url params need to passed off as a dict.
+
+        TODO: Fetch fulfillment from a FulFillmentOrder
+        """
+        oid = kwargs.get("order_id")
+
+        if fullfilment_id is None:
+            if oid is None:
+                json_path = "fulfillments.json"
+            else:
+                json_path = f"orders/{oid}/fulfillments.json"
+        elif oid is None:
+            raise AttributeError(
+                "Order ID is required to fetch individual fulfillments"
+            )
+
+        else:
+            json_path = f"orders/{oid}/fulfillments/{fullfilment_id}.json"
+
+        resp = await self.__get_item(url_json_path=json_path, limit=limit, **params)
+
+        if return_mode == 1:
+            if fullfilment_id:
+                return Fulfillment(resp.json()["fulfillment"])
+            return [Fulfillment(f) for f in resp.json()["fulfillments"]]
+        elif fullfilment_id is None:
+            return resp.json()["fulfillment"]
+
+        return resp.json()["fulfillments"]
+
+    def get_fulfillments_sync(
+        self,
+        limit=50,
+        *,
+        fullfilment_id: str | int | None = None,
+        return_mode: ReturnMode = ReturnMode.DICT,
+        params: dict = {},
+        **kwargs,
+    ) -> list[dict | Fulfillment] | Fulfillment | dict:
+        return asyncio.run(
+            self.get_fulfillments(
+                limit,
+                fullfilment_id=fullfilment_id,
+                params=params,
+                return_mode=return_mode,
+                **kwargs,
+            )
+        )
