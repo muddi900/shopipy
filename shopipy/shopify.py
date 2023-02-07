@@ -42,8 +42,8 @@ class Shopify:
         self.__url = f"https://{store_slug}.myshopify.com/admin/api/2022-07"
         self.__headers = {"X-Shopify-Access-Token": admin_key}
 
-    async def __get_client(self, **kwargs) -> httpx.AsyncClient:
-        return await httpx.AsyncClient(headers=self.__headers, **kwargs)
+    def __get_client(self, **kwargs) -> httpx.AsyncClient:
+        return httpx.AsyncClient(headers=self.__headers, **kwargs)
 
     async def __bulk_request(
         self, action: BulkAction, *, endpoint: str | None, payloads: list[dict]
@@ -66,7 +66,7 @@ class Shopify:
 
             tasks.append(asyncio.current_task(runner(client=client, **payload)))
 
-        client.close()
+        await client.aclose()
         return await asyncio.gather(*tasks)
 
     async def __get_item(
@@ -75,6 +75,7 @@ class Shopify:
         client: httpx.AsyncClient = None,
         url_json_path: str,
         limit: int | None,
+        **params,
     ) -> httpx.Response:
         """
         The generic function to get items
@@ -88,9 +89,9 @@ class Shopify:
         url = f"{self.__url}/{url_json_path}"
 
         if limit is not None or limit > 0:
-            url = f"{url}?limit={limit}"
-        resp = await client.get(url)
-        client.close()
+            params = {**params, "limit": limit}
+        resp = await client.get(url, params=params)
+        await client.aclose()
         return resp
 
     async def __create_items(
@@ -108,23 +109,27 @@ class Shopify:
             client = await self.__get_client()
 
         resp = client.post(url, json=data)
-        client.close()
+        await client.aclose()
         return resp
 
     async def get_orders(
         self,
         limit=50,
         *,
+        order_id: str | int | None = None,
         return_mode: ReturnMode = ReturnMode.DICT,
+        **params,
     ) -> list[dict | Order]:
         """
         The method to get orders
         """
 
-        json_path = "orders.json"
-        limit = None
+        if id is None:
+            json_path = "orders.json"
+        else:
+            json_path = f"orders/{order_id}.json"
 
-        orders = await self.__get_item(url_json_path=json_path, limit=limit)
+        orders = await self.__get_item(url_json_path=json_path, limit=limit, **params)
 
         if return_mode == 1:
             return [Order(o) for o in orders.json()["Orders"]]
@@ -134,25 +139,40 @@ class Shopify:
     def get_orders_sync(
         self,
         limit: int = 50,
+        *,
+        order_id: str | int | None = None,
         return_mode: ReturnMode = ReturnMode.DICT,
+        **params,
     ) -> list[dict | Order]:
         """
         Synchronus vesion of `get_orders`
         """
-        return asyncio.run(self.get_orders_async(limit, return_mode=return_mode))
+        return asyncio.run(
+            self.get_orders_async(
+                limit,
+                return_mode=return_mode,
+                order_id=order_id,
+                **params,
+            )
+        )
 
     async def get_products(
         self,
         limit=50,
         *,
         return_mode=ReturnMode.DICT,
-    ) -> list(dict | Product):
+        product_id: int | str | None,
+        **params,
+    ) -> list[dict | Product]:
 
         """
         Get products from the api,
         """
 
-        json_path = "products.json"
+        if product_id is None:
+            json_path = "products.json"
+        else:
+            json_path = f"products/{product_id}.json"
         limit = None
 
         products = await self.__get_item(url_json_path=json_path, limit=limit)
@@ -163,10 +183,7 @@ class Shopify:
         return products.json()["products"]
 
     def get_products_sync(
-        self,
-        limit=50,
-        *,
-        return_mode=ReturnMode.DICT,
+        self, limit=50, *, product_id=None, return_mode=ReturnMode.DICT, **params
     ) -> list(dict | Product):
         """
         Sync version of `get_products`
@@ -175,6 +192,8 @@ class Shopify:
             self.get_products(
                 limit,
                 return_mode=return_mode,
+                product_id=product_id,
+                **params,
             ),
         )
 
@@ -198,12 +217,22 @@ class Shopify:
         return asyncio.run(self.create_product(data))
 
     async def get_customers(
-        self, limit=50, *, return_mode=ReturnMode.DICT
+        self,
+        limit=50,
+        *,
+        return_mode=ReturnMode.DICT,
+        customer_id: int | str | None = None,
+        **params,
     ) -> list[dict | Customer]:
         """
         Get Customer info.
         """
-        resp = await self.__get_item(url_json_path="customers.json", limit=limit)
+        if customer_id is None:
+            json_path = "customers.json"
+        else:
+            json_path = f"customers/{customer_id}.json"
+
+        resp = await self.__get_item(url_json_path=json_path, limit=limit, **params)
 
         if return_mode == 1:
             return [Customer(c) for c in resp.json()["customers"]]
@@ -214,17 +243,37 @@ class Shopify:
         self,
         limit=50,
         *,
+        customer_id=None,
         return_mode: ReturnMode = ReturnMode.DICT,
+        **params,
     ) -> list[dict | Customer]:
         """
         Sync version of getting customers.
         """
-        return asyncio.run(self.get_customers())
+        return asyncio.run(
+            self.get_customers(
+                limit,
+                return_mode=return_mode,
+                customer_id=customer_id,
+                **params,
+            )
+        )
 
-    async def get_webhooks(self):
+    async def get_webhooks(
+        self,
+        limit=50,
+        *,
+        webhook_id: str | int | None = None,
+        return_mode: ReturnMode.DICT,
+        **params,
+    ):
         """
         Get existing webhooks
         """
-        resp = await self.__get_item(url_json_path="webhooks.json", limit=50)
+
+        # fmt:off
+        json_path = "webhooks.json" if webhook_id is None else f"webhooks/{webhook_id}.json"
+        # fmt:on
+        resp = await self.__get_item(url_json_path=json_path, limit=50)
 
         return resp.json()
