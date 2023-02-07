@@ -180,9 +180,9 @@ class Shopify:
 
     async def create_product(self, data: dict[Any, Any]) -> dict:
 
-        '''
+        """
         Create a product
-        '''
+        """
 
         resp = await self.__create_items(
             data=data,
@@ -192,14 +192,17 @@ class Shopify:
         return resp.json()
 
     def create_product_sync(self, data: dict[Any, Any]) -> dict:
-        '''
+        """
         Sync version of `create_product`
-        '''
+        """
         return asyncio.run(self.create_product(data))
 
     async def get_customers(
         self, limit=50, *, return_mode=ReturnMode.DICT
     ) -> list[dict | Customer]:
+        """
+        Get Customer info.
+        """
         resp = await self.__get_item(url_json_path="customers.json", limit=limit)
 
         if return_mode == 1:
@@ -213,9 +216,15 @@ class Shopify:
         *,
         return_mode: ReturnMode = ReturnMode.DICT,
     ) -> list[dict | Customer]:
+        """
+        Sync version of getting customers.
+        """
         return asyncio.run(self.get_customers())
 
     async def get_webhooks(self):
+        """
+        Get existing webhooks
+        """
         resp = await self.__get_item(url_json_path="webhooks.json", limit=50)
 
         return resp.json()
