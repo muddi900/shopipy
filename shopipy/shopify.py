@@ -5,7 +5,7 @@ import httpx
 from enum import Enum
 from typing import Any
 
-from models import Order, Product, Customer, Fulfillment
+from models import Order, Product, Customer, Fulfillment, Webhook
 
 
 class BulkAction(Enum):
@@ -266,7 +266,7 @@ class Shopify:
         webhook_id: str | int | None = None,
         return_mode: ReturnMode.DICT,
         **params,
-    ):
+    ) -> dict | list[dict] | Webhook | list[Webhook]:
         """
         Get existing webhooks
         """
@@ -276,7 +276,14 @@ class Shopify:
         # fmt:on
         resp = await self.__get_item(url_json_path=json_path, limit=50, **params)
 
-        return resp.json()
+        resp_data = resp.json()
+        if return_mode == 1:
+            return (
+                [Webhook(w) for w in resp_data["webhooks"]]
+                if webhook_id is None
+                else Webhook(resp_data["webhook"])
+            )
+        return resp_data["webhooks"] if webhook_id is None else resp_data["webhook"]
 
     async def get_fulfillments(
         self,
