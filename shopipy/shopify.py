@@ -21,12 +21,21 @@ class ReturnMode(Enum):
 
 
 class Shopify:
+    """The Main class for the Api. This will be the entry point for our SDK"""
+
     def __init__(
         self,
         store_slug: str,
         *,
         admin_key=os.environ.get("SHOPIFY_ADMIN_KEY", None),
     ) -> None:
+        """
+        The API requires a authorized Admin key,
+        and the store admin url slug. Admin key can be accessed
+        via the App dev panel if your are creating a standalone app.
+
+        Otherwise it requires Oauth flow.
+        """
 
         if admin_key is None:
             raise TypeError("Admin key can't be none")
@@ -67,6 +76,9 @@ class Shopify:
         url_json_path: str,
         limit: int | None,
     ) -> httpx.Response:
+        """
+        The generic function to get items
+        """
         if limit > 250:
             raise AttributeError("The max limit is 250")
 
@@ -88,7 +100,9 @@ class Shopify:
         url_json_path: str,
         data: dict[Any, Any],
     ) -> httpx.Response:
-
+        """
+        The generic function to create items
+        """
         url = f"{self.__url}/{url_json_path}"
         if client is None:
             client = await self.__get_client()
@@ -103,6 +117,9 @@ class Shopify:
         *,
         return_mode: ReturnMode = ReturnMode.DICT,
     ) -> list[dict | Order]:
+        """
+        The method to get orders
+        """
 
         json_path = "orders.json"
         limit = None
@@ -119,6 +136,9 @@ class Shopify:
         limit: int = 50,
         return_mode: ReturnMode = ReturnMode.DICT,
     ) -> list[dict | Order]:
+        """
+        Synchronus vesion of `get_orders`
+        """
         return asyncio.run(self.get_orders_async(limit, return_mode=return_mode))
 
     async def get_products(
@@ -127,6 +147,10 @@ class Shopify:
         *,
         return_mode=ReturnMode.DICT,
     ) -> list(dict | Product):
+
+        """
+        Get products from the api,
+        """
 
         json_path = "products.json"
         limit = None
@@ -144,6 +168,9 @@ class Shopify:
         *,
         return_mode=ReturnMode.DICT,
     ) -> list(dict | Product):
+        """
+        Sync version of `get_products`
+        """
         return asyncio.run(
             self.get_products(
                 limit,
@@ -153,6 +180,10 @@ class Shopify:
 
     async def create_product(self, data: dict[Any, Any]) -> dict:
 
+        '''
+        Create a product
+        '''
+
         resp = await self.__create_items(
             data=data,
             url_json_path="products.json",
@@ -161,6 +192,9 @@ class Shopify:
         return resp.json()
 
     def create_product_sync(self, data: dict[Any, Any]) -> dict:
+        '''
+        Sync version of `create_product`
+        '''
         return asyncio.run(self.create_product(data))
 
     async def get_customers(
