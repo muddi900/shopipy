@@ -17,7 +17,7 @@ class BulkAction(Enum):
 
 class ReturnMode(Enum):
     DICT = 0
-    MODEL = 2
+    MODEL = 1
 
 
 class Shopify:
@@ -28,6 +28,7 @@ class Shopify:
         store_slug: str,
         *,
         admin_key=os.environ.get("SHOPIFY_ADMIN_KEY", None),
+        api_version="2022-07",
     ) -> None:
         """
         The API requires a authorized Admin key,
@@ -39,7 +40,7 @@ class Shopify:
 
         if admin_key is None:
             raise TypeError("Admin key can't be none")
-        self.__url = f"https://{store_slug}.myshopify.com/admin/api/2022-07"
+        self.__url = f"https://{store_slug}.myshopify.com/admin/api/{api_version}"
         self.__headers = {"X-Shopify-Access-Token": admin_key}
 
     def __get_client(self, **kwargs) -> httpx.AsyncClient:
