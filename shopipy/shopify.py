@@ -28,7 +28,7 @@ class Shopify:
         store_slug: str,
         *,
         admin_key=os.environ.get("SHOPIFY_ADMIN_KEY", None),
-        api_version="2022-07",
+        api_version="2023-07",
     ) -> None:
         """
         The API requires a authorized Admin key,
@@ -39,7 +39,7 @@ class Shopify:
         """
 
         if admin_key is None:
-            raise TypeError("Admin key can't be none")
+            raise TypeError("Admin key can't be None")
         self.__url = f"https://{store_slug}.myshopify.com/admin/api/{api_version}"
         self.__headers = {"X-Shopify-Access-Token": admin_key}
 
@@ -165,7 +165,6 @@ class Shopify:
         product_id: int | str | None,
         **params,
     ) -> list[dict | Product]:
-
         """
         Get products from the api,
         """
@@ -199,7 +198,6 @@ class Shopify:
         )
 
     async def create_product(self, data: dict[Any, Any]) -> dict:
-
         """
         Create a product
         """
@@ -295,7 +293,6 @@ class Shopify:
         params: dict = {},
         **kwargs,
     ) -> list[dict | Fulfillment] | Fulfillment | dict:
-
         """
         A method to get fulfillments or an individual fulfillment.
         Invidual fulfillments require an order_id to be passed as a kwarg.
