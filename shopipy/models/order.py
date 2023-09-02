@@ -138,16 +138,16 @@ class Order:
     confirmation_number: str
     created_at: str
     currency: str
-    current_total_additional_fees_set: CurrentTotalAdditionalFeesSet
+    current_total_additional_fees_set: Any | CurrentTotalAdditionalFeesSet
     current_total_discounts: str
-    current_total_discounts_set: CurrentTotalDiscountsSet
-    current_total_duties_set: CurrentTotalDutiesSet
+    current_total_discounts_set: Any | CurrentTotalDiscountsSet
+    current_total_duties_set: Any | CurrentTotalDutiesSet
     current_total_price: str
-    current_total_price_set: CurrentTotalPriceSet
+    current_total_price_set: Any | CurrentTotalPriceSet
     current_subtotal_price: str
-    current_subtotal_price_set: CurrentTotalPriceSet
+    current_subtotal_price_set: Any | CurrentTotalPriceSet
     current_total_tax: str
-    current_total_tax_set: CurrentTotalPriceSet
+    current_total_tax_set: Any | CurrentTotalPriceSet
     customer: Customer
     customer_locale: str
     discount_applications: dict[str, Any]
@@ -181,27 +181,27 @@ class Order:
     referring_site: str
     refunds: list[dict[str, Any]]
     shipping_address: Address
-    shipping_lines: list[ShippingLine]
+    shipping_lines: list | list[ShippingLine]
     source_name: str
     source_identifier: str
     source_url: str
     subtotal_price: str
-    subtotal_price_set: CurrentTotalPriceSet
+    subtotal_price_set: Any | CurrentTotalPriceSet | None
     tags: str
     tax_lines: list[TaxLine]
     taxes_included: bool
     test: bool
     token: str
     total_discounts: str
-    total_discounts_set: CurrentTotalDiscountsSet | None
+    total_discounts_set: Any | CurrentTotalDiscountsSet | None
     total_line_items_price: str
-    total_line_items_price_set: CurrentTotalPriceSet | None
+    total_line_items_price_set: Any | CurrentTotalPriceSet | None
     total_outstanding: str
     total_price: str
-    total_price_set: CurrentTotalPriceSet
-    total_shipping_price_set: CurrentTotalPriceSet
+    total_price_set: Any | CurrentTotalPriceSet
+    total_shipping_price_set: Any | CurrentTotalPriceSet
     total_tax: str
-    total_tax_set: CurrentTotalPriceSet
+    total_tax_set: Any | CurrentTotalPriceSet
     total_tip_received: str
     total_weight: int
     updated_at: str
