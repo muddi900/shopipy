@@ -1,6 +1,12 @@
-from base import BaseModel
+from dataclasses import dataclass
 
 
-class Fulfillment(BaseModel):
-    def __init__(self, data: dict) -> None:
-        super().__init__(data, "tracking_numbers")
+@dataclass
+class Fulfillment:
+    created_at: str
+    id: int
+    order_id: int
+    status: str
+    tracking_company: str
+    tracking_number: str
+    updated_at: str
