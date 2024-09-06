@@ -184,7 +184,7 @@ class Shopify:
 
     def get_products_sync(
         self, limit=50, *, product_id=None, return_mode=ReturnMode.DICT, **params
-    ) -> list(dict | Product):
+    ) -> list[dict | Product]:
         """
         Sync version of `get_products`
         """
