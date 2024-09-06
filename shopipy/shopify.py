@@ -1,6 +1,7 @@
 import os
 import asyncio
 import httpx
+from httpx import AsyncClient
 
 from enum import Enum
 from typing import Any
@@ -42,9 +43,13 @@ class Shopify:
             raise TypeError("Admin key can't be None")
         self.__url = f"https://{store_slug}.myshopify.com/admin/api/{api_version}"
         self.__headers = {"X-Shopify-Access-Token": admin_key}
+        self._client: AsyncClient | None = None
 
-    def __get_client(self, **kwargs) -> httpx.AsyncClient:
-        return httpx.AsyncClient(headers=self.__headers, **kwargs)
+    @property
+    def client(self, **kwargs) -> AsyncClient:
+        if self._client is None:
+            self._client = AsyncClient(headers=self.__headers, **kwargs)
+        return self._client
 
     async def __bulk_request(
         self, action: BulkAction, *, endpoint: str | None, payloads: list[dict]
@@ -59,7 +64,7 @@ class Shopify:
 
         tasks = []
 
-        client = self.__get_client()
+        client = self.client()
 
         for payload in payloads:
             if endpoint is not None and "url_json_path" not in payload:
@@ -73,7 +78,7 @@ class Shopify:
     async def __get_item(
         self,
         *,
-        client: httpx.AsyncClient = None,
+        client: AsyncClient = None,
         url_json_path: str,
         limit: int | None,
         **params,
@@ -85,7 +90,7 @@ class Shopify:
             raise AttributeError("The max limit is 250")
 
         if client is None:
-            client = await self.__get_client()
+            client = await self.client()
 
         url = f"{self.__url}/{url_json_path}"
 
@@ -98,7 +103,7 @@ class Shopify:
     async def __create_items(
         self,
         *,
-        client: httpx.AsyncClient = None,
+        client: AsyncClient = None,
         url_json_path: str,
         data: dict[Any, Any],
     ) -> httpx.Response:
@@ -107,7 +112,7 @@ class Shopify:
         """
         url = f"{self.__url}/{url_json_path}"
         if client is None:
-            client = await self.__get_client()
+            client = await self.client()
 
         resp = client.post(url, json=data)
         await client.aclose()
