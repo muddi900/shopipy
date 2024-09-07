@@ -1,5 +1,15 @@
-from order import Order
-from product import Product
-from customer import Customer
-from fulfillment import Fulfillment
-from webhook import Webhook
+from .order import Order
+from .customer import Address, Customer
+from .fulfillment import Fulfillment
+from .product import Product
+from .webhook import Webhook
+
+
+__all__ = [
+    "Order",
+    "Address",
+    "Customer",
+    "Fulfillment",
+    "Product",
+    "Webhook",
+]
