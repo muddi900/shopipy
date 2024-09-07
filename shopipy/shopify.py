@@ -78,7 +78,6 @@ class Shopify:
     async def __get_item(
         self,
         *,
-        client: AsyncClient = None,
         url_json_path: str,
         limit: int | None,
         **params,
@@ -89,21 +88,16 @@ class Shopify:
         if limit > 250:
             raise AttributeError("The max limit is 250")
 
-        if client is None:
-            client = await self.client()
-
         url = f"{self.__url}/{url_json_path}"
 
         if limit is not None or limit > 0:
             params = {**params, "limit": limit}
-        resp = await client.get(url, params=params)
-        await client.aclose()
+        resp = await self.client.get(url, params=params)
         return resp
 
     async def __create_items(
         self,
         *,
-        client: AsyncClient = None,
         url_json_path: str,
         data: dict[Any, Any],
     ) -> httpx.Response:
@@ -111,11 +105,8 @@ class Shopify:
         The generic function to create items
         """
         url = f"{self.__url}/{url_json_path}"
-        if client is None:
-            client = await self.client()
 
-        resp = client.post(url, json=data)
-        await client.aclose()
+        resp = await self.client.post(url, json=data)
         return resp
 
     async def get_orders(
@@ -130,9 +121,8 @@ class Shopify:
         The method to get orders
         """
 
-        if id is None:
-            json_path = "orders.json"
-        else:
+        json_path = "orders.json"
+        if order_id is not None:
             json_path = f"orders/{order_id}.json"
 
         orders = await self.__get_item(url_json_path=json_path, limit=limit, **params)
