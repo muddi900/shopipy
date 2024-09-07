@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from enum import Enum
 from typing import Any
 
-from models import Order, Product, Customer, Fulfillment, Webhook
+from .models import *
 
 
 class BulkAction(Enum):
