@@ -64,7 +64,7 @@ class Shopify:
 
         tasks = []
 
-        client = self.client()
+        client = self.client
 
         for payload in payloads:
             if endpoint is not None and "url_json_path" not in payload:
