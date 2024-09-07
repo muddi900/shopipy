@@ -144,7 +144,7 @@ class Shopify:
         Synchronus vesion of `get_orders`
         """
         return asyncio.run(
-            self.get_orders_async(
+            self.get_orders(
                 limit,
                 return_mode=return_mode,
                 order_id=order_id,
