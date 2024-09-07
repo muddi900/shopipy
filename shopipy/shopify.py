@@ -90,7 +90,7 @@ class Shopify:
 
         url = f"{self.__url}/{url_json_path}"
 
-        if limit is not None or limit > 0:
+        if limit is not None:
             params = {**params, "limit": limit}
         resp = await self.client.get(url, params=params)
         return resp
@@ -258,7 +258,7 @@ class Shopify:
         limit=50,
         *,
         webhook_id: str | int | None = None,
-        return_mode: ReturnMode.DICT,
+        return_mode: ReturnMode = ReturnMode.DICT,
         **params,
     ) -> dict | list[dict] | Webhook | list[Webhook]:
         """
