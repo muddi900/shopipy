@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
-from fulfillment import Fulfillment
-from customer import Customer, Address
+from .fulfillment import Fulfillment
+from .customer import Customer, Address
 
 
 @dataclass
