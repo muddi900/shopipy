@@ -1,3 +1,4 @@
+from asyncio.tasks import _FutureLike
 import os
 import asyncio
 import httpx
@@ -62,7 +63,7 @@ class Shopify:
             case _:
                 return
 
-        tasks = []
+        tasks: list[_FutureLike] = []
 
         client = self.client
 
@@ -70,16 +71,17 @@ class Shopify:
             if endpoint is not None and "url_json_path" not in payload:
                 payload["url_json_path"] = endpoint
 
-            tasks.append(asyncio.current_task(runner(client=client, **payload)))
+            task = asyncio.current_task(runner(client=client, **payload))
+            if task is not None:
+                tasks.append(task)
 
-        await client.aclose()
         return await asyncio.gather(*tasks)
 
     async def __get_item(
         self,
         *,
         url_json_path: str,
-        limit: int | None,
+        limit: int = 50,
         **params,
     ) -> httpx.Response:
         """
@@ -173,7 +175,7 @@ class Shopify:
         products = await self.__get_item(url_json_path=json_path, limit=limit)
 
         if return_mode == 1:
-            return [Product(p) for p in products.json()["products"]]
+            return [Product(**p) for p in products.json()["products"]]
 
         return products.json()["products"]
 
@@ -229,7 +231,7 @@ class Shopify:
         resp = await self.__get_item(url_json_path=json_path, limit=limit, **params)
 
         if return_mode == 1:
-            return [Customer(c) for c in resp.json()["customers"]]
+            return [Customer(**c) for c in resp.json()["customers"]]
 
         return resp.json()["customers"]
 
