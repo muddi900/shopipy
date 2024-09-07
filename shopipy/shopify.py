@@ -1,10 +1,11 @@
+from asyncio.tasks import _FutureLike
 import os
 import asyncio
 import httpx
-from httpx import AsyncClient
 
+from httpx import AsyncClient
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 from .models import *
 
@@ -56,30 +57,31 @@ class Shopify:
     ):
         match action:
             case BulkAction.GET:
-                runner = self.__get_item
+                runner: Callable = self.__get_item
             case BulkAction.CREATE:
                 runner = self.__create_items
             case _:
                 return
 
-        tasks = []
+        tasks: list[_FutureLike] = []
 
-        client = self.client()
+        client = self.client
 
         for payload in payloads:
             if endpoint is not None and "url_json_path" not in payload:
                 payload["url_json_path"] = endpoint
 
-            tasks.append(asyncio.current_task(runner(client=client, **payload)))
+            task = asyncio.current_task(runner(client=client, **payload))
+            if task is not None:
+                tasks.append(task)
 
-        await client.aclose()
         return await asyncio.gather(*tasks)
 
     async def __get_item(
         self,
         *,
         url_json_path: str,
-        limit: int | None,
+        limit: int = 50,
         **params,
     ) -> httpx.Response:
         """
@@ -90,7 +92,7 @@ class Shopify:
 
         url = f"{self.__url}/{url_json_path}"
 
-        if limit is not None or limit > 0:
+        if limit is not None:
             params = {**params, "limit": limit}
         resp = await self.client.get(url, params=params)
         return resp
@@ -144,7 +146,7 @@ class Shopify:
         Synchronus vesion of `get_orders`
         """
         return asyncio.run(
-            self.get_orders_async(
+            self.get_orders(
                 limit,
                 return_mode=return_mode,
                 order_id=order_id,
@@ -173,7 +175,7 @@ class Shopify:
         products = await self.__get_item(url_json_path=json_path, limit=limit)
 
         if return_mode == 1:
-            return [Product(p) for p in products.json()["products"]]
+            return [Product(**p) for p in products.json()["products"]]
 
         return products.json()["products"]
 
@@ -229,7 +231,7 @@ class Shopify:
         resp = await self.__get_item(url_json_path=json_path, limit=limit, **params)
 
         if return_mode == 1:
-            return [Customer(c) for c in resp.json()["customers"]]
+            return [Customer(**c) for c in resp.json()["customers"]]
 
         return resp.json()["customers"]
 
@@ -258,7 +260,7 @@ class Shopify:
         limit=50,
         *,
         webhook_id: str | int | None = None,
-        return_mode: ReturnMode.DICT,
+        return_mode: ReturnMode = ReturnMode.DICT,
         **params,
     ) -> dict | list[dict] | Webhook | list[Webhook]:
         """
