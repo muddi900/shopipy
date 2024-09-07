@@ -1,10 +1,10 @@
 import os
 import asyncio
 import httpx
-from httpx import AsyncClient
 
+from httpx import AsyncClient
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 from .models import *
 
@@ -56,7 +56,7 @@ class Shopify:
     ):
         match action:
             case BulkAction.GET:
-                runner = self.__get_item
+                runner: Callable = self.__get_item
             case BulkAction.CREATE:
                 runner = self.__create_items
             case _:
