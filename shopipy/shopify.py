@@ -4,17 +4,17 @@ import asyncio
 import httpx
 
 from httpx import AsyncClient
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Callable
 
 from .models import *
 
 
-class BulkAction(Enum):
-    GET = 1
-    CREATE = 2
-    EDIT = 3
-    DELETE = 4
+class RequestType(StrEnum):
+    GET = "get"
+    CREATE = "post"
+    EDIT = "put"
+    DELETE = "delete"
 
 
 class ReturnMode(Enum):
@@ -106,25 +106,27 @@ class Shopify:
         if limit > 250:
             raise AttributeError("The max limit is 250")
 
-        url = f"{self.__url}/{url_json_path}"
-
-        if limit is not None:
-            params = {**params, "limit": limit}
-        resp = await self.client.get(url, params=params)
+        params = {**params, "limit": limit}
+        resp = await self._request(
+            method=RequestType.GET,
+            url_json_path=url_json_path,
+            **params,
+        )
         return resp
 
     async def __create_items(
-        self,
-        *,
-        url_json_path: str,
-        data: dict[Any, Any],
+        self, *, url_json_path: str, data: dict[Any, Any], **params
     ) -> httpx.Response:
         """
         The generic function to create items
         """
-        url = f"{self.__url}/{url_json_path}"
 
-        resp = await self.client.post(url, json=data)
+        resp = await self._request(
+            url_json_path,
+            RequestType.CREATE,
+            json=data,
+            **params,
+        )
         return resp
 
     async def get_orders(
