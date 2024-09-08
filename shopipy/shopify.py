@@ -77,6 +77,22 @@ class Shopify:
 
         return await asyncio.gather(*tasks)
 
+    async def _request(
+        self,
+        url_json_path: str,
+        method: str,
+        json: dict[Any, Any] | None,
+        **params,
+    ) -> httpx.Response:
+        url = "{}/{}".format(self.__url, url_json_path)
+
+        return await self.client.request(
+            method,
+            url,
+            json=json,
+            params=params,
+        )
+
     async def __get_item(
         self,
         *,
