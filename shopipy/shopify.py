@@ -81,7 +81,8 @@ class Shopify:
         self,
         url_json_path: str,
         method: str,
-        json: dict[Any, Any] | None,
+        *,
+        json: dict[Any, Any] | None = None,
         **params,
     ) -> httpx.Response:
         url = "{}/{}".format(self.__url, url_json_path)
@@ -128,6 +129,14 @@ class Shopify:
             **params,
         )
         return resp
+
+    async def _delete_item(
+        self, url_json_path: str, *, item_id: int | str | None = None, **params
+    ) -> httpx.Response:
+        json_path = (
+            f"{url_json_path}/{item_id}.json" if item_id is not None else url_json_path
+        )
+        return await self._request(url_json_path, RequestType.DELETE)
 
     async def get_orders(
         self,
