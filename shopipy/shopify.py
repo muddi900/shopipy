@@ -5,7 +5,7 @@ import httpx
 
 from httpx import AsyncClient
 from enum import Enum, StrEnum
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from .models import *
 
@@ -52,28 +52,11 @@ class Shopify:
             self._client = AsyncClient(headers=self.__headers, **kwargs)
         return self._client
 
-    async def __bulk_request(
-        self, action: RequestType, *, endpoint: str | None, payloads: list[dict]
-    ):
-        match action:
-            case RequestType.GET:
-                runner: Callable = self.__get_item
-            case RequestType.CREATE:
-                runner = self.__create_items
-            case _:
-                return
+    async def bulk_request(self, requests_list: list[dict]):
 
-        tasks: list[_FutureLike] = []
-
-        client = self.client
-
-        for payload in payloads:
-            if endpoint is not None and "url_json_path" not in payload:
-                payload["url_json_path"] = endpoint
-
-            task = asyncio.current_task(runner(client=client, **payload))
-            if task is not None:
-                tasks.append(task)
+        tasks: list[_FutureLike] = [
+            asyncio.create_task(self._request(**req)) for req in requests_list
+        ]
 
         return await asyncio.gather(*tasks)
 
