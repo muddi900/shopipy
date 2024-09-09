@@ -138,6 +138,19 @@ class Shopify:
         )
         return await self._request(url_json_path, RequestType.DELETE)
 
+    async def _edit_item(
+        self,
+        url_json_path: str,
+        json: dict[Any, Any],
+        *,
+        item_id: int | str | None = None,
+        **params,
+    ) -> httpx.Response:
+        json_path = (
+            f"{url_json_path}/{item_id}.json" if item_id is not None else url_json_path
+        )
+        return await self._request(url_json_path, RequestType.EDIT, json=json)
+
     async def get_orders(
         self,
         limit=50,
