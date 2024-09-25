@@ -236,7 +236,7 @@ class Shopify:
         return asyncio.run(self.create_product(data))
 
     async def edit_product(self, product_id: int, data: dict[Any, Any]) -> dict:
-        json_path = f"prodcuts/{product_id}.json"
+        json_path = f"products/{product_id}.json"
         resp = await self._edit_item(url_json_path=json_path, json=data)
         return resp.json()
 
@@ -244,7 +244,7 @@ class Shopify:
         return asyncio.run(self.edit_product(product_id=product_id, data=data))
 
     async def delete_product(self, product_id: int) -> dict:
-        json_path = f"prodcuts/{product_id}.json"
+        json_path = f"products/{product_id}.json"
         resp = await self._delete_item(url_json_path=json_path)
         return resp.json()
 
