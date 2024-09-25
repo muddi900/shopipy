@@ -177,6 +177,22 @@ class Shopify:
             )
         )
 
+    async def edit_order(self, order_id: int, data: dict[Any, Any]) -> dict:
+        json_path = f"orders/{order_id}.json"
+        resp = await self._edit_item(url_json_path=json_path, json=data)
+        return resp.json()
+
+    def edit_order_sync(self, order_id: int, data: dict) -> dict:
+        return asyncio.run(self.edit_order(order_id=order_id, data=data))
+
+    async def delete_order(self, order_id: int) -> dict:
+        json_path = f"orders/{order_id}.json"
+        resp = await self._delete_item(url_json_path=json_path)
+        return resp.json()
+
+    def delete_order_sync(self, order_id: int, data: dict) -> dict:
+        return asyncio.run(self.delete_order(order_id=order_id))
+
     async def get_products(
         self,
         limit=50,
@@ -250,22 +266,6 @@ class Shopify:
 
     def delete_product_sync(self, product_id: int, data: dict) -> dict:
         return asyncio.run(self.delete_product(product_id=product_id))
-
-    async def edit_order(self, order_id: int, data: dict[Any, Any]) -> dict:
-        json_path = f"orders/{order_id}.json"
-        resp = await self._edit_item(url_json_path=json_path, json=data)
-        return resp.json()
-
-    def edit_order_sync(self, order_id: int, data: dict) -> dict:
-        return asyncio.run(self.edit_order(order_id=order_id, data=data))
-
-    async def delete_order(self, order_id: int) -> dict:
-        json_path = f"orders/{order_id}.json"
-        resp = await self._delete_item(url_json_path=json_path)
-        return resp.json()
-
-    def delete_order_sync(self, order_id: int, data: dict) -> dict:
-        return asyncio.run(self.delete_order(order_id=order_id))
 
     async def get_customers(
         self,
@@ -396,3 +396,74 @@ class Shopify:
                 **kwargs,
             )
         )
+
+    async def create_fulfillment(
+        self,
+        fulfillment_order_id: int,
+        tracking_number: str | None = None,
+        company: str | None = None,
+        tracking_url: str | None = None,
+        other_data: dict | None = None,
+    ) -> dict:
+
+        tracking_info = {}
+
+        if tracking_number:
+            tracking_info["number"] = tracking_number
+
+        if company:
+            tracking_info["company"] = "company"
+
+        if tracking_url:
+            tracking_info["url"] = tracking_url
+
+        json_data = {
+            "fulfillment": {
+                "line_items_by_fulfillment_order": fulfillment_order_id,
+                "tracking_info": tracking_info,
+            }
+        }
+
+        if other_data:
+            json_data = {**json_data, **other_data}
+
+        resp = await self.__create_items(
+            url_json_path="fulfillments.json", data=json_data
+        )
+        return resp.json()
+
+    def create_fulfillment_sync(
+        self,
+        fulfillment_order_id: int,
+        tracking_number: str | None = None,
+        company: str | None = None,
+        tracking_url: str | None = None,
+        other_data: dict | None = None,
+    ) -> dict:
+        return asyncio.run(
+            self.create_fulfillment(
+                fulfillment_order_id=fulfillment_order_id,
+                tracking_number=tracking_number,
+                company=company,
+                tracking_url=tracking_url,
+                other_data=other_data,
+            )
+        )
+
+    async def edit_fulfillment(self, fulfillment_id: int, data: dict[Any, Any]) -> dict:
+        json_path = f"fulfillments/{fulfillment_id}.json"
+        resp = await self._edit_item(url_json_path=json_path, json=data)
+        return resp.json()
+
+    def edit_fulfillment_sync(self, fulfillment_id: int, data: dict) -> dict:
+        return asyncio.run(
+            self.edit_fulfillment(fulfillment_id=fulfillment_id, data=data)
+        )
+
+    async def delete_fulfillment(self, fulfillment_id: int) -> dict:
+        json_path = f"fulfillments/{fulfillment_id}.json"
+        resp = await self._delete_item(url_json_path=json_path)
+        return resp.json()
+
+    def delete_fulfillment_sync(self, fulfillment_id: int, data: dict) -> dict:
+        return asyncio.run(self.delete_fulfillment(fulfillment_id=fulfillment_id))
