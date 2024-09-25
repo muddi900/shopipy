@@ -235,6 +235,14 @@ class Shopify:
         """
         return asyncio.run(self.create_product(data))
 
+    async def edit_product(self, product_id: int, data: dict[Any, Any]) -> dict:
+        json_path = f"prodcuts/{product_id}.json"
+        resp = await self._edit_item(url_json_path=json_path, json=data)
+        return resp.json()
+
+    def edit_product_sync(self, product_id: int, data: dict) -> dict:
+        return asyncio.run(self.edit_product(product_id=product_id, data=data))
+
     async def get_customers(
         self,
         limit=50,
