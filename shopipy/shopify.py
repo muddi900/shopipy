@@ -336,6 +336,48 @@ class Shopify:
             )
         return resp_data["webhooks"] if webhook_id is None else resp_data["webhook"]
 
+    def get_webhooks_sync(
+        self,
+        limit=50,
+        *,
+        webhook_id: str | int | None = None,
+        return_mode: ReturnMode = ReturnMode.DICT,
+        **params,
+    ) -> dict | list[dict] | Webhook | list[Webhook]:
+        return asyncio.run(
+            self.get_webhooks(
+                limit=limit,
+                webhook_id=webhook_id,
+                return_mode=return_mode,
+                **params,
+            )
+        )
+
+    async def create_webhook(
+        self, topic: str, address: str, format: str = "json"
+    ) -> dict:
+        json_data = {"topic": topic, "address": address, "format": format}
+
+        resp = await self.__create_items(url_json_path="webhooks.json", data=json_data)
+
+        return resp.json()
+
+    async def edit_webhook(self, webhook_id: int, data: dict[Any, Any]) -> dict:
+        json_path = f"webhooks/{webhook_id}.json"
+        resp = await self._edit_item(url_json_path=json_path, json=data)
+        return resp.json()
+
+    def edit_webhook_sync(self, webhook_id: int, data: dict) -> dict:
+        return asyncio.run(self.edit_webhook(webhook_id=webhook_id, data=data))
+
+    async def delete_webhook(self, webhook_id: int) -> dict:
+        json_path = f"webhooks/{webhook_id}.json"
+        resp = await self._delete_item(url_json_path=json_path)
+        return resp.json()
+
+    def delete_webhook_sync(self, webhook_id: int, data: dict) -> dict:
+        return asyncio.run(self.delete_webhook(webhook_id=webhook_id))
+
     async def get_fulfillments(
         self,
         limit=50,
