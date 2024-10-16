@@ -310,6 +310,34 @@ class Shopify:
             )
         )
 
+    async def create_customer(self, customer_data: dict) -> dict:
+
+        resp = await self.__create_items(
+            url_json_path="customers.json", data=customer_data
+        )
+        return resp.json()
+
+    def create_customer_sync(self, customer_data: dict) -> dict:
+        resp_data = asyncio.run(self.create_customer(customer_data=customer_data))
+
+        return resp_data
+
+    async def edit_customer(self, customer_id: int, data: dict[Any, Any]) -> dict:
+        json_path = f"customers/{customer_id}.json"
+        resp = await self._edit_item(url_json_path=json_path, json=data)
+        return resp.json()
+
+    def edit_customer_sync(self, customer_id: int, data: dict) -> dict:
+        return asyncio.run(self.edit_customer(customer_id=customer_id, data=data))
+
+    async def delete_customer(self, customer_id: int) -> dict:
+        json_path = f"customers/{customer_id}.json"
+        resp = await self._delete_item(url_json_path=json_path)
+        return resp.json()
+
+    def delete_customer_sync(self, customer_id: int, data: dict) -> dict:
+        return asyncio.run(self.delete_customer(customer_id=customer_id))
+
     async def get_webhooks(
         self,
         limit=50,
